@@ -1,13 +1,10 @@
 # Use official TeX Live base image
 FROM texlive/texlive:latest
 
-# Set environment variables to avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Set working directory
 WORKDIR /app
 
-# Install basic utilities, jq, Puppeteer dependencies, Chromium, fontconfig, and unzip
+# Install system dependencies as root
 RUN apt-get update && apt-get install -y \
   curl \
   wget \
@@ -34,9 +31,12 @@ RUN apt-get update && apt-get install -y \
   chromium \
   fontconfig \
   unzip \
+  sudo \
+  ca-certificates \
+  fonts-liberation \
   && rm -rf /var/lib/apt/lists/*
 
-# Install all FiraCode font variants from zip file
+# Install FiraCode fonts as root
 RUN mkdir -p /usr/share/fonts/truetype/firacode && \
   wget -O /tmp/Fira_Code_v6.2.zip \
   https://github.com/tonsky/FiraCode/releases/download/6.2/Fira_Code_v6.2.zip && \
@@ -44,34 +44,40 @@ RUN mkdir -p /usr/share/fonts/truetype/firacode && \
   rm /tmp/Fira_Code_v6.2.zip && \
   fc-cache -f -v
 
-# Install Node.js and npm
+# Install Node.js and npm as root
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
   apt-get install -y nodejs && \
   npm install -g npm
 
-# Create and activate a Python virtual environment
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Create non-root user and allow sudo without password
+RUN useradd -m -s /bin/bash appuser && \
+  chown -R appuser:appuser /app && \
+  echo "appuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/appuser
 
-# Install Python dependencies in the virtual environment
-RUN pip3 install --no-cache-dir \
-  pandocfilters \
-  pygments
+# Switch to non-root user
+USER appuser
 
-# Install Node.js dependencies
-RUN npm install --global --no-progress \
-  puppeteer@24.4.0 \
+# Set up Python virtual environment as appuser
+RUN python3 -m venv /home/appuser/venv && \
+  /home/appuser/venv/bin/pip install --no-cache-dir \
+  pandocfilters==1.5.1 \
+  pygments==2.19.1
+
+# Set up global npm install path for appuser
+RUN mkdir -p /home/appuser/.npm-global && \
+  npm config set prefix /home/appuser/.npm-global
+
+# Install Node.js dependencies globally as appuser
+RUN npm install -g --no-progress \
+  puppeteer@23.9.0 \
   @mermaid-js/mermaid-cli@11.4.2
 
-# Configure Puppeteer to use the system Chromium
+# Configure Puppeteer env vars
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Ensure TeX Live binaries are in PATH (already set in base image, but confirming)
-ENV PATH="/usr/local/texlive/2024/bin/x86_64-linux:$PATH"
+# Set PATH for venv, global Node.js binaries, and TeX Live
+ENV PATH="/home/appuser/venv/bin:/home/appuser/.npm-global/bin:/usr/local/texlive/2024/bin/x86_64-linux:$PATH"
 
-# Set default command
 CMD ["bash"]
-
-# Optional: Add a healthcheck
 HEALTHCHECK CMD ["latexmk", "--version"] || exit 1
