@@ -50,7 +50,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
   npm install -g npm
 
 # Create non-root user and allow sudo without password
-RUN useradd -m -s /bin/bash appuser && \
+RUN useradd -m -s /bin/bash -u 1000 -g 1000 appuser && \
   chown -R appuser:appuser /app && \
   echo "appuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/appuser
 

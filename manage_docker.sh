@@ -51,12 +51,15 @@ run_container() {
     exit 1
   fi
   HOST_DIR="$(realpath "$HOST_DIR")"
-  check_permissions "$HOST_DIR"
+  check_permissions "$HOST_DIR"  # Keep as o+w or update to o+rwx
   echo "📂 Mounting '$HOST_DIR' to /app in the container..."
+
+  # Get host UID:GID
+  HOST_UID=$(stat -c '%u' "$HOST_DIR")
+  HOST_GID=$(stat -c '%g' "$HOST_DIR")
 
   EXISTING_CONTAINER=$(docker ps -aq -f name="$CONTAINER_NAME")
   if [ "$EXISTING_CONTAINER" ]; then
-    # Check if current mount matches requested directory
     CURRENT_MOUNT=$(docker inspect -f '{{range .Mounts}}{{.Source}}{{end}}' "$CONTAINER_NAME")
     if [ "$CURRENT_MOUNT" != "$HOST_DIR" ]; then
       echo "⚠️ Mount directory differs from existing container. Recreating..."
@@ -64,7 +67,6 @@ run_container() {
       docker rm "$CONTAINER_NAME" || { echo "❌ Remove failed at line $LINENO"; exit 1; }
       EXISTING_CONTAINER=""
     else
-      # Check if image needs updating
       CONTAINER_IMAGE_ID=$(docker inspect -f '{{.Image}}' "$CONTAINER_NAME" | cut -d: -f2 | cut -c 1-12)
       LATEST_IMAGE_ID=$(docker images -q "$IMAGE_NAME" | head -n 1)
       if [ "$CONTAINER_IMAGE_ID" != "$LATEST_IMAGE_ID" ]; then
@@ -79,10 +81,10 @@ run_container() {
   if [ -z "$EXISTING_CONTAINER" ]; then
     echo "🚀 Creating a new container..."
     if [ "$MODE" = "detached" ]; then
-      docker run -dit --name "$CONTAINER_NAME" -v "$HOST_DIR:/app" "$IMAGE_NAME" || { echo "❌ Run failed at line $LINENO"; exit 1; }
+      docker run -dit --user "$HOST_UID:$HOST_GID" --name "$CONTAINER_NAME" -v "$HOST_DIR:/app" "$IMAGE_NAME" || { echo "❌ Run failed at line $LINENO"; exit 1; }
       echo "✅ Container started in detached mode."
     else
-      docker run -it --name "$CONTAINER_NAME" -v "$HOST_DIR:/app" "$IMAGE_NAME" || { echo "❌ Run failed at line $LINENO"; exit 1; }
+      docker run -it --user "$HOST_UID:$HOST_GID" --name "$CONTAINER_NAME" -v "$HOST_DIR:/app" "$IMAGE_NAME" || { echo "❌ Run failed at line $LINENO"; exit 1; }
     fi
     return 0
   fi
