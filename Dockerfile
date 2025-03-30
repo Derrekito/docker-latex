@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
   wget \
   git \
   make \
+  imagemagick \
   jq \
   libnss3 \
   libatk1.0-0 \
