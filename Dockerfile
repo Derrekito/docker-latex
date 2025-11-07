@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
   libxfixes3 \
   libxrandr2 \
   libgbm1 \
-  libasound2 \
+  libasound2t64 \
   perl \
   pandoc \
   python3 \
@@ -51,25 +51,28 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
   npm install -g npm
 
 # Create non-root user and allow sudo without password
-RUN useradd -m -s /bin/bash -u 1000 -g 1000 appuser && \
-  chown -R appuser:appuser /app && \
-  echo "appuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/appuser
+# Check if user with UID 1000 exists, if so use it, otherwise create appuser
+RUN if id -u 1000 >/dev/null 2>&1; then \
+      EXISTING_USER=$(id -un 1000); \
+      echo "$EXISTING_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$EXISTING_USER; \
+      chown -R $EXISTING_USER:$(id -gn 1000) /app; \
+    else \
+      useradd -m -s /bin/bash -u 1000 -g 1000 appuser && \
+      echo "appuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/appuser && \
+      chown -R appuser:appuser /app; \
+    fi
 
-# Switch to non-root user
-USER appuser
+# Switch to non-root user (Docker sets HOME automatically)
+USER 1000
 
-# Set up Python virtual environment as appuser
-RUN python3 -m venv /home/appuser/venv && \
-  /home/appuser/venv/bin/pip install --no-cache-dir \
+# Set up Python virtual environment and npm in one consolidated layer
+RUN python3 -m venv ~/venv && \
+  ~/venv/bin/pip install --no-cache-dir \
   pandocfilters==1.5.1 \
-  pygments==2.19.1
-
-# Set up global npm install path for appuser
-RUN mkdir -p /home/appuser/.npm-global && \
-  npm config set prefix /home/appuser/.npm-global
-
-# Install Node.js dependencies globally as appuser
-RUN npm install -g --no-progress \
+  pygments==2.19.1 && \
+  mkdir -p ~/.npm-global && \
+  npm config set prefix ~/.npm-global && \
+  npm install -g --no-progress \
   puppeteer@23.9.0 \
   @mermaid-js/mermaid-cli@11.4.2
 
@@ -78,7 +81,8 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Set PATH for venv, global Node.js binaries, and TeX Live
-ENV PATH="/home/appuser/venv/bin:/home/appuser/.npm-global/bin:/usr/local/texlive/2024/bin/x86_64-linux:$PATH"
+# Note: Use full paths since ENV doesn't expand variables at runtime
+ENV PATH="/home/texlive/venv/bin:/home/texlive/.npm-global/bin:/usr/local/texlive/2024/bin/x86_64-linux:${PATH}"
 
 CMD ["bash"]
 HEALTHCHECK CMD ["latexmk", "--version"] || exit 1
