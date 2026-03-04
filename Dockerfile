@@ -73,8 +73,8 @@ RUN python3 -m venv ~/venv && \
   mkdir -p ~/.npm-global && \
   npm config set prefix ~/.npm-global && \
   npm install -g --no-progress \
-  puppeteer@23.9.0 \
-  @mermaid-js/mermaid-cli@11.4.2
+  puppeteer@24.37.5 \
+  @mermaid-js/mermaid-cli@11.12.0
 
 # Configure Puppeteer env vars
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
