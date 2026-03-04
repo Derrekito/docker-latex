@@ -9,6 +9,8 @@ DEFAULT_WORK_DIR="$(pwd)"  # Default to current directory if no path provided
 
 # Function to build the Docker image
 build_image() {
+  echo "Pulling latest base image..."
+  docker pull texlive/texlive:latest
   echo "Building Docker image: $IMAGE_NAME..."
   docker build -t "$IMAGE_NAME" .
   echo "✅ Image built successfully."

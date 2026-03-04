@@ -108,7 +108,7 @@ The environment includes:
 - **Utilities**: `make`, `curl`, `wget`, `git`, `jq`, `perl`, `pandoc`, `python3`, `nodejs`, `chromium`
 - **Fonts**: FiraCode variants (Retina, Light, Bold, Regular, SemiBold, Medium)
 - **Python**: Virtual environment with `pandocfilters` and `pygments`
-- **Node.js**: `puppeteer` (v24.37.5) and `@mermaid-js/mermaid-cli` (v11.12.0)
+- **Node.js**: `puppeteer` (v24.15.0) and `@mermaid-js/mermaid-cli` (v11.12.0)
 - **Default Working Directory**: `/app`
 - **Default Command**: `bash`
 - **Healthcheck**: Verifies `latexmk` functionality

@@ -5,13 +5,29 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
 
 # Install system dependencies as root
-RUN apt-get update && apt-get install -y \
+# Use --no-install-recommends to avoid pulling in unnecessary packages
+# Fix dpkg if interrupted, then install dependencies
+RUN dpkg --configure -a || true && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends \
   curl \
   wget \
   git \
   make \
   imagemagick \
   jq \
+  perl \
+  pandoc \
+  python3 \
+  python3-pip \
+  python3-venv \
+  fontconfig \
+  unzip \
+  sudo \
+  ca-certificates \
+  fonts-liberation \
+  # Chromium and its dependencies (libasound2t64 already in base image)
+  chromium \
   libnss3 \
   libatk1.0-0 \
   libatk-bridge2.0-0 \
@@ -23,18 +39,6 @@ RUN apt-get update && apt-get install -y \
   libxfixes3 \
   libxrandr2 \
   libgbm1 \
-  libasound2t64 \
-  perl \
-  pandoc \
-  python3 \
-  python3-pip \
-  python3-venv \
-  chromium \
-  fontconfig \
-  unzip \
-  sudo \
-  ca-certificates \
-  fonts-liberation \
   && rm -rf /var/lib/apt/lists/*
 
 # Install FiraCode fonts as root
@@ -45,8 +49,8 @@ RUN mkdir -p /usr/share/fonts/truetype/firacode && \
   rm /tmp/Fira_Code_v6.2.zip && \
   fc-cache -f -v
 
-# Install Node.js and npm as root
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+# Install Node.js 20.x LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
   apt-get install -y nodejs && \
   npm install -g npm
 
@@ -73,7 +77,7 @@ RUN python3 -m venv ~/venv && \
   mkdir -p ~/.npm-global && \
   npm config set prefix ~/.npm-global && \
   npm install -g --no-progress \
-  puppeteer@24.37.5 \
+  puppeteer@24.15.0 \
   @mermaid-js/mermaid-cli@11.12.0
 
 # Configure Puppeteer env vars
