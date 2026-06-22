@@ -47,12 +47,21 @@ RUN mkdir -p /usr/share/fonts/truetype/firacode && \
   https://github.com/tonsky/FiraCode/releases/download/6.2/Fira_Code_v6.2.zip && \
   unzip -j /tmp/Fira_Code_v6.2.zip "ttf/*" -d /usr/share/fonts/truetype/firacode && \
   rm /tmp/Fira_Code_v6.2.zip && \
-  fc-cache -f -v
+  # The base image ships a populated /var/cache/fontconfig; fc-cache's clean
+  # pass chokes on those stale cache files ("invalid cache file" -> "fc-cache:
+  # failed"). Clearing it first lets fc-cache regenerate from scratch cleanly.
+  rm -rf /var/cache/fontconfig/* && \
+  fc-cache -f
 
-# Install Node.js 20.x LTS
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+# Install Node.js 22.x LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
   apt-get install -y nodejs && \
   npm install -g npm
+
+# Create a version-agnostic symlink to the TeX Live binaries.
+# The base image's TeX Live year (e.g. 2024, 2025, ...) changes over time,
+# so we resolve the versioned bin dir at build time and expose it at a fixed path.
+RUN ln -s "$(dirname "$(find /usr/local/texlive -maxdepth 3 -name 'x86_64-linux' -type d | head -n1)")/x86_64-linux" /usr/local/texlive/bin
 
 # Create non-root user and allow sudo without password
 # Check if user with UID 1000 exists, if so use it, otherwise create appuser
@@ -73,12 +82,12 @@ USER 1000
 RUN python3 -m venv ~/venv && \
   ~/venv/bin/pip install --no-cache-dir \
   pandocfilters==1.5.1 \
-  pygments==2.19.1 && \
+  pygments==2.20.0 && \
   mkdir -p ~/.npm-global && \
   npm config set prefix ~/.npm-global && \
   npm install -g --no-progress \
-  puppeteer@24.15.0 \
-  @mermaid-js/mermaid-cli@11.12.0
+  puppeteer@25.1.0 \
+  @mermaid-js/mermaid-cli@11.15.0
 
 # Configure Puppeteer env vars
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
@@ -86,7 +95,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Set PATH for venv, global Node.js binaries, and TeX Live
 # Note: Use full paths since ENV doesn't expand variables at runtime
-ENV PATH="/home/texlive/venv/bin:/home/texlive/.npm-global/bin:/usr/local/texlive/2024/bin/x86_64-linux:${PATH}"
+ENV PATH="/home/texlive/venv/bin:/home/texlive/.npm-global/bin:/usr/local/texlive/bin:${PATH}"
 
 CMD ["bash"]
 HEALTHCHECK CMD ["latexmk", "--version"] || exit 1
