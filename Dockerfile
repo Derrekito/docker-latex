@@ -53,8 +53,8 @@ RUN mkdir -p /usr/share/fonts/truetype/firacode && \
   rm -rf /var/cache/fontconfig/* && \
   fc-cache -f
 
-# Install Node.js 22.x LTS
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+# Install Node.js 24.x LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
   apt-get install -y nodejs && \
   npm install -g npm
 
@@ -78,24 +78,24 @@ RUN if id -u 1000 >/dev/null 2>&1; then \
 # Switch to non-root user (Docker sets HOME automatically)
 USER 1000
 
+# Use system Chromium; skip Puppeteer's browser download during npm install
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
 # Set up Python virtual environment and npm in one consolidated layer
 RUN python3 -m venv ~/venv && \
   ~/venv/bin/pip install --no-cache-dir \
   pandocfilters==1.5.1 \
-  pygments==2.20.0 && \
+  pygments==2.21.0 && \
   mkdir -p ~/.npm-global && \
   npm config set prefix ~/.npm-global && \
   npm install -g --no-progress \
-  puppeteer@25.1.0 \
-  @mermaid-js/mermaid-cli@11.15.0
-
-# Configure Puppeteer env vars
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+  puppeteer@25.16.0 \
+  @mermaid-js/mermaid-cli@12.0.0
 
 # Set PATH for venv, global Node.js binaries, and TeX Live
 # Note: Use full paths since ENV doesn't expand variables at runtime
 ENV PATH="/home/texlive/venv/bin:/home/texlive/.npm-global/bin:/usr/local/texlive/bin:${PATH}"
 
 CMD ["bash"]
-HEALTHCHECK CMD ["latexmk", "--version"] || exit 1
+HEALTHCHECK CMD latexmk --version || exit 1
