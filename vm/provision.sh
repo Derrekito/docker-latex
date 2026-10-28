@@ -9,11 +9,14 @@ VM_USER="${VM_USER:-vagrant}"
 TEXLIVE_SCHEME="${TEXLIVE_SCHEME:-scheme-full}"
 TEXLIVE_MIRROR="${TEXLIVE_MIRROR:-https://mirror.ctan.org/systems/texlive/tlnet}"
 NODE_MAJOR=24
+PANDOC_VERSION=3.11
 FIRACODE_VERSION=6.2
 PANDOCFILTERS_VERSION=1.5.1
 PYGMENTS_VERSION=2.21.0
 PUPPETEER_VERSION=25.16.0
 MERMAID_CLI_VERSION=12.0.0
+MANUAL_PIPELINE_REPO="${MANUAL_PIPELINE_REPO:-https://github.com/Derrekito/manual-pipeline.git}"
+MANUAL_PIPELINE_REF="${MANUAL_PIPELINE_REF:-main}"
 
 export DEBIAN_FRONTEND=noninteractive
 USER_HOME="$(getent passwd "$VM_USER" | cut -d: -f6)"
@@ -28,7 +31,6 @@ apt-get install -y --no-install-recommends \
   imagemagick \
   jq \
   perl \
-  pandoc \
   python3 \
   python3-pip \
   python3-venv \
@@ -40,6 +42,14 @@ apt-get install -y --no-install-recommends \
   gnupg \
   chromium
 rm -rf /var/lib/apt/lists/*
+
+echo "==> Installing pandoc $PANDOC_VERSION"
+if [ "$(pandoc --version 2>/dev/null | head -n1 | awk '{print $2}')" != "$PANDOC_VERSION" ]; then
+  wget -qO /tmp/pandoc.deb \
+    "https://github.com/jgm/pandoc/releases/download/$PANDOC_VERSION/pandoc-$PANDOC_VERSION-1-$(dpkg --print-architecture).deb"
+  dpkg -i /tmp/pandoc.deb
+  rm /tmp/pandoc.deb
+fi
 
 echo "==> Installing TeX Live ($TEXLIVE_SCHEME)"
 if [ ! -x /usr/local/texlive/bin/tex ]; then
@@ -103,6 +113,22 @@ npm install -g --no-progress \
   @mermaid-js/mermaid-cli@$MERMAID_CLI_VERSION
 EOF
 
+echo "==> Installing manual-pipeline ($MANUAL_PIPELINE_REF)"
+install -d -o "$VM_USER" -g "$VM_USER" /opt/manual-pipeline
+sudo -u "$VM_USER" -H bash -s <<EOF
+set -euo pipefail
+export PUPPETEER_SKIP_DOWNLOAD=true
+if [ -d /opt/manual-pipeline/.git ]; then
+  git -C /opt/manual-pipeline fetch --quiet origin "$MANUAL_PIPELINE_REF"
+  git -C /opt/manual-pipeline checkout --quiet --force FETCH_HEAD
+else
+  git clone --quiet "$MANUAL_PIPELINE_REPO" /opt/manual-pipeline
+  git -C /opt/manual-pipeline checkout --quiet "$MANUAL_PIPELINE_REF"
+fi
+cd /opt/manual-pipeline && npm ci --no-progress
+EOF
+echo 'export MANUAL_PIPELINE_DIR=/opt/manual-pipeline' > /etc/profile.d/manual-pipeline.sh
+
 echo "==> Done"
 PATH="$USER_HOME/venv/bin:$USER_HOME/.npm-global/bin:/usr/local/texlive/bin:$PATH" \
-  bash -c 'pdflatex --version | head -n1; node --version; mmdc --version; pygmentize -V'
+  bash -c 'pdflatex --version | head -n1; pandoc --version | head -n1; node --version; mmdc --version; pygmentize -V'

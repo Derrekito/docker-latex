@@ -105,10 +105,11 @@ Compiles a LaTeX project using `make`. Requires a Makefile in the directory.
 The environment includes:
 
 - **Base**: `texlive/texlive:latest`
-- **Utilities**: `make`, `curl`, `wget`, `git`, `jq`, `perl`, `pandoc`, `python3`, `nodejs`, `chromium`
+- **Utilities**: `make`, `curl`, `wget`, `git`, `jq`, `perl`, `pandoc` (pinned 3.11), `python3`, `nodejs`, `chromium`
 - **Fonts**: FiraCode variants (Retina, Light, Bold, Regular, SemiBold, Medium)
 - **Python**: Virtual environment with `pandocfilters` and `pygments`
 - **Node.js**: `puppeteer` (v25.16.0) and `@mermaid-js/mermaid-cli` (v12.0.0)
+- **manual-pipeline**: cloned to `/opt/manual-pipeline` with its Node dependencies installed; `MANUAL_PIPELINE_DIR` points to it
 - **Default Working Directory**: `/app`
 - **Default Command**: `bash`
 - **Healthcheck**: Verifies `latexmk` functionality
@@ -120,6 +121,41 @@ If you prefer not to use the script for building:
 ```bash
 docker build -t latex-environment .
 ```
+
+### Using manual-pipeline
+
+In a project's `manual/Makefile`, use the baked-in copy:
+
+```makefile
+PIPELINE_DIR := $(MANUAL_PIPELINE_DIR)
+include $(PIPELINE_DIR)/Makefile.include
+```
+
+or override it for one build: `make pdf PIPELINE_DIR=$MANUAL_PIPELINE_DIR`.
+
+Each rebuild fetches the latest `main`. To pin a branch, tag or commit:
+
+```bash
+docker build --build-arg MANUAL_PIPELINE_REF=<ref> -t latex-environment .
+```
+
+## VirtualBox VM
+
+`vm/` holds a Vagrant setup that installs the same toolchain (including manual-pipeline) on a Debian 13 VM. Requires VirtualBox and Vagrant.
+
+```bash
+cd vm
+vagrant up      # first boot installs everything; full TeX Live takes a while
+vagrant ssh     # starts in /app, the mounted documents directory
+```
+
+Environment overrides for `vagrant up`:
+
+- `LATEX_DIR`: host directory mounted at `/app` (default: this repo). Run `vagrant reload` after changing it.
+- `VM_MEMORY` / `VM_CPUS`: RAM in MB and CPU count (default: 4096 / 2)
+- `TEXLIVE_SCHEME`: e.g. `scheme-medium` for a smaller install (default: `scheme-full`)
+
+Re-run provisioning (e.g. to update manual-pipeline) with `vagrant provision`.
 
 ## Notes
 

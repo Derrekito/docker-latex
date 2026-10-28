@@ -17,7 +17,6 @@ RUN dpkg --configure -a || true && \
   imagemagick \
   jq \
   perl \
-  pandoc \
   python3 \
   python3-pip \
   python3-venv \
@@ -40,6 +39,13 @@ RUN dpkg --configure -a || true && \
   libxrandr2 \
   libgbm1 \
   && rm -rf /var/lib/apt/lists/*
+
+# Install a pinned pandoc release; distro pandoc versions vary between bases
+ARG PANDOC_VERSION=3.11
+RUN wget -qO /tmp/pandoc.deb \
+  "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-$(dpkg --print-architecture).deb" && \
+  dpkg -i /tmp/pandoc.deb && \
+  rm /tmp/pandoc.deb
 
 # Install FiraCode fonts as root
 RUN mkdir -p /usr/share/fonts/truetype/firacode && \
@@ -92,6 +98,14 @@ RUN python3 -m venv ~/venv && \
   npm install -g --no-progress \
   puppeteer@25.16.0 \
   @mermaid-js/mermaid-cli@12.0.0
+
+# Bake in manual-pipeline with its Node dependencies preinstalled. Projects use it
+# by setting PIPELINE_DIR := $(MANUAL_PIPELINE_DIR) in their manual/Makefile.
+# BuildKit resolves the ref on every build, so a rebuild picks up new commits.
+ARG MANUAL_PIPELINE_REF=main
+ADD --chown=1000:1000 https://github.com/Derrekito/manual-pipeline.git#${MANUAL_PIPELINE_REF} /opt/manual-pipeline
+RUN cd /opt/manual-pipeline && npm ci --no-progress
+ENV MANUAL_PIPELINE_DIR=/opt/manual-pipeline
 
 # Set PATH for venv, global Node.js binaries, and TeX Live
 # Note: Use full paths since ENV doesn't expand variables at runtime
