@@ -1,0 +1,71 @@
+% themes/RosePineMoon/beamercolorthemeRosePineMoon.sty
+\ProvidesPackage{beamercolorthemeRosePineMoon}[2026/06/23 v1.0 Rosé Pine Moon Colors]
+\mode<presentation>
+
+% --- Official Rosé Pine Moon palette ---
+\xdefinecolor{Base}{RGB}{35,33,54}
+\xdefinecolor{Surface}{RGB}{42,39,63}
+\xdefinecolor{Overlay}{RGB}{57,53,82}
+\xdefinecolor{Muted}{RGB}{110,106,134}
+\xdefinecolor{Subtle}{RGB}{144,140,170}
+\xdefinecolor{Text}{RGB}{224,222,244}
+\xdefinecolor{Love}{RGB}{235,111,146}
+\xdefinecolor{Gold}{RGB}{246,193,119}
+\xdefinecolor{Rose}{RGB}{234,154,151}
+\xdefinecolor{Pine}{RGB}{62,143,176}
+\xdefinecolor{Foam}{RGB}{156,207,216}
+\xdefinecolor{Iris}{RGB}{196,167,231}
+\xdefinecolor{HighlightLow}{RGB}{42,40,62}
+\xdefinecolor{HighlightMed}{RGB}{68,65,90}
+\xdefinecolor{HighlightHigh}{RGB}{86,82,110}
+
+% --- Link colors ---
+\xdefinecolor{urlcolor}{named}{Foam}
+\xdefinecolor{linkcolor}{named}{Iris}
+\xdefinecolor{citecolor}{named}{Love}
+\AtBeginDocument{%
+  \hypersetup{colorlinks=true,linkcolor=linkcolor,urlcolor=urlcolor,citecolor=citecolor}%
+}
+
+% --- Base canvas + text ---
+\setbeamercolor{background canvas}{bg=Base}
+\setbeamercolor{normal text}{fg=Text, bg=Base}
+\setbeamercolor{structure}{fg=Iris}
+
+% --- Title / metadata ---
+\setbeamercolor*{title}{fg=Text}
+\setbeamercolor*{subtitle}{fg=Subtle}
+\setbeamercolor*{author}{fg=Subtle}
+\setbeamercolor*{institute}{fg=Subtle}
+\setbeamercolor*{date}{fg=Subtle}
+\setbeamercolor{frametitle}{fg=Text, bg=}
+
+% --- TOC ---
+\setbeamercolor{section in toc}{fg=Text}
+\setbeamercolor{section in toc shaded}{fg=Subtle}
+\setbeamercolor{subsection in toc}{fg=Subtle}
+
+% --- Itemize / enumerate markers ---
+\setbeamercolor{itemize item}{fg=Pine}
+\setbeamercolor{itemize subitem}{fg=Love}
+\setbeamercolor{itemize subsubitem}{fg=Iris}
+\setbeamercolor{enumerate item}{fg=Pine}
+\setbeamercolor{enumerate subitem}{fg=Love}
+\setbeamercolor{enumerate subsubitem}{fg=Iris}
+\setbeamercolor{item projected}{fg=Base, bg=Gold}
+
+% --- Blocks ---
+\setbeamercolor{block title}{fg=Text, bg=Surface}
+\setbeamercolor{block body}{fg=Text, bg=Overlay}
+\setbeamercolor{block title alerted}{fg=Base, bg=Love}
+\setbeamercolor{block body alerted}{fg=Text, bg=Overlay}
+\setbeamercolor{block title example}{fg=Base, bg=Foam}
+\setbeamercolor{block body example}{fg=Text, bg=Overlay}
+
+% --- Bibliography ---
+\setbeamercolor{bibliography entry author}{fg=Text}
+\setbeamercolor{bibliography entry title}{fg=Text}
+\setbeamercolor{bibliography entry location}{fg=Subtle}
+\setbeamercolor{bibliography entry note}{fg=Subtle}
+\setbeamercolor{bibliography item}{fg=Iris}
+\mode<all>

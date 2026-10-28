@@ -1,0 +1,66 @@
+% themes/RosePineMoon/beamertcolorboxthemeRosePineMoon.sty
+% Rosé Pine Moon callout boxes for technical-video slides.
+%
+% Five callouts — notebox / tip / warning / dangerbox / defbox — rounded,
+% palette-tinted boxed title bars on a Surface body, each with a fontawesome5
+% icon. Each takes an optional title argument, e.g.
+%   \begin{notebox}[Heads up] ... \end{notebox}
+%
+% Built on the box structure from beamertcolorboxthemeAFRL.sty in this repo:
+% `enhanced jigsaw` + `breakable` + an attached boxed title
+% (`attach boxed title to top left` / `boxed title style`).
+%
+% tcolorbox itself is loaded at top level by the master theme with
+% [most,skins,minted]; this file only defines the callout boxes.
+%
+% NAMING (important): every callout environment uses a *box-suffixed* name to
+% avoid clashing with pre-existing definitions. `note` and `definition` are
+% already defined by beamer (speaker notes; a \newtheorem) and by amsthm; and
+% `danger` is defined elsewhere in the LaTeX ecosystem — declaring
+% \newtcolorbox over an existing `danger` leaves the box half-constructed and
+% fatals with an undefined \tcb@insert@after@part at \end{frame}. Hence
+% `notebox`, `dangerbox`, `defbox` (and `tip`/`warning`, which are free).
+\ProvidesPackage{beamertcolorboxthemeRosePineMoon}[2026/06/23 v2.0 Rosé Pine Moon Callouts]
+
+\mode<presentation>
+
+% Shared callout style. #1 = accent color (title bar + frame). The leading icon
+% is supplied per box via the title= key below.
+\tcbset{
+  rpm@callout/.style={
+    enhanced jigsaw,
+    breakable,
+    colback=Surface,
+    colframe=#1,
+    coltext=Text,
+    colbacktitle=#1,
+    coltitle=Base,
+    fonttitle=\bfseries,
+    boxrule=0.8pt,
+    arc=3pt,
+    boxsep=3pt,
+    left=8pt, right=8pt, top=8pt, bottom=6pt,
+    before=\par\smallskip\noindent,
+    after=\par\smallskip,
+    enlargepage flexible=\baselineskip,
+    pad at break*=3mm,
+    height fixed for=first and middle,
+    attach boxed title to top left={yshift=-0.3\baselineskip, xshift=8pt},
+    boxed title style={
+      enhanced,
+      boxrule=0pt,
+      arc=2pt,
+      colback=#1,
+      left=4pt, right=4pt, top=1pt, bottom=1pt,
+    },
+  },
+}
+
+% Each callout: optional arg #1 is the title text; the icon leads the title.
+\newtcolorbox{notebox}[1][Note]{rpm@callout={Iris}, title={\faInfoCircle~ #1}}
+\newtcolorbox{tip}[1][Tip]{rpm@callout={Foam}, title={\faLightbulb~ #1}}
+\newtcolorbox{warning}[1][Warning]{rpm@callout={Gold}, title={\faExclamationTriangle~ #1}}
+\newtcolorbox{dangerbox}[1][Danger]{rpm@callout={Love}, title={\faTimesCircle~ #1}}
+\newtcolorbox{defbox}[1][Definition]{rpm@callout={Pine}, title={\faBook~ #1}}
+
+\mode<all>

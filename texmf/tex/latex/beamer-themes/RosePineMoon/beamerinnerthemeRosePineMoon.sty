@@ -1,0 +1,27 @@
+% themes/RosePineMoon/beamerinnerthemeRosePineMoon.sty
+\ProvidesPackage{beamerinnerthemeRosePineMoon}[2026/06/23 v1.0 Rosé Pine Moon Inner]
+\mode<presentation>
+
+% Clean bullet glyphs
+\setbeamertemplate{itemize item}{\small\raise0.4pt\hbox{\color{Pine}$\blacktriangleright$}}
+\setbeamertemplate{itemize subitem}{\color{Love}\textendash}
+\setbeamertemplate{itemize subsubitem}{\color{Iris}\textperiodcentered}
+\setbeamertemplate{enumerate items}[default]
+
+% Rounded blocks
+\setbeamertemplate{blocks}[rounded][shadow=false]
+
+% Where-am-I TOC: current section highlighted Gold, others Subtle
+\setbeamercolor{section in toc}{fg=Subtle}
+\setbeamertemplate{section in toc}{%
+  \ifnum\inserttocsectionnumber=\value{section}%
+    {\color{Gold}\bfseries\inserttocsection}%
+  \else
+    {\color{Subtle}\inserttocsection}%
+  \fi\par\vskip4pt}
+\newcommand{\rpmtoc}{%
+  \begin{frame}{Where we are}
+    \tableofcontents[currentsection, sectionstyle=show, subsectionstyle=hide]
+  \end{frame}}
+
+\mode<all>

@@ -1,0 +1,39 @@
+% themes/RosePineMoon/beamerthemeRosePineMoon.sty
+\ProvidesPackage{beamerthemeRosePineMoon}[2026/06/23 v1.1 Rose Pine Moon Theme]
+
+% Load tcolorbox at top level, BEFORE \mode<presentation>, with every library
+% the tcolorbox and minted sub-themes need. Loading it here (rather than letting
+% each sub-theme \RequirePackage it with its own option set) avoids an option
+% clash, and keeps its box-construction internals in the global scope.
+\RequirePackage[most,skins,minted]{tcolorbox}
+
+\mode<presentation>
+
+% --- Package option: chrome (enables footline frame numbers) ---
+\newif\ifrpm@chrome
+\rpm@chromefalse
+\DeclareOption{chrome}{\rpm@chrometrue}
+\ProcessOptions\relax
+
+% --- Sub-theme loader helpers (mirror AFRL pattern) ---
+\newcommand{\usetikztheme}[1]{%
+  \InputIfFileExists{beamertikztheme#1.sty}%
+    {\PackageInfo{beamertikztheme}{Loading tikz theme '#1'}}%
+    {\PackageWarning{beamertikztheme}{Tikz theme '#1' not found}}}
+\newcommand{\usetcolorboxtheme}[1]{%
+  \InputIfFileExists{beamertcolorboxtheme#1.sty}%
+    {\PackageInfo{beamertcolorboxtheme}{Loading tcolorbox theme '#1'}}%
+    {\PackageWarning{beamertcolorboxtheme}{tcolorbox theme '#1' not found}}}
+\newcommand{\usemintedtheme}[1]{%
+  \InputIfFileExists{beamermintedtheme#1.sty}%
+    {\PackageInfo{beamermintedtheme}{Loading minted theme '#1'}}%
+    {\PackageWarning{beamermintedtheme}{Minted theme '#1' not found}}}
+
+\usecolortheme{RosePineMoon}
+\useoutertheme{RosePineMoon}
+\useinnertheme{RosePineMoon}
+\usefonttheme{RosePineMoon}
+\usetikztheme{RosePineMoon}
+\usetcolorboxtheme{RosePineMoon}
+\usemintedtheme{RosePineMoon}
+\mode<all>

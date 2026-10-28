@@ -25,6 +25,12 @@ RUN dpkg --configure -a || true && \
   sudo \
   ca-certificates \
   fonts-liberation \
+  fonts-firacode \
+  fonts-hack \
+  fonts-roboto \
+  fonts-jetbrains-mono \
+  poppler-utils \
+  qpdf \
   # Chromium and its dependencies (libasound2t64 already in base image)
   chromium \
   libnss3 \
@@ -47,12 +53,10 @@ RUN wget -qO /tmp/pandoc.deb \
   dpkg -i /tmp/pandoc.deb && \
   rm /tmp/pandoc.deb
 
-# Install FiraCode fonts as root
-RUN mkdir -p /usr/share/fonts/truetype/firacode && \
-  wget -O /tmp/Fira_Code_v6.2.zip \
-  https://github.com/tonsky/FiraCode/releases/download/6.2/Fira_Code_v6.2.zip && \
-  unzip -j /tmp/Fira_Code_v6.2.zip "ttf/*" -d /usr/share/fonts/truetype/firacode && \
-  rm /tmp/Fira_Code_v6.2.zip && \
+# Fonts not packaged by Debian
+RUN mkdir -p /usr/share/fonts/truetype/special-gothic && \
+  wget -qO /usr/share/fonts/truetype/special-gothic/SpecialGothicCondensedOne-Regular.ttf \
+  https://github.com/google/fonts/raw/main/ofl/specialgothiccondensedone/SpecialGothicCondensedOne-Regular.ttf && \
   # The base image ships a populated /var/cache/fontconfig; fc-cache's clean
   # pass chokes on those stale cache files ("invalid cache file" -> "fc-cache:
   # failed"). Clearing it first lets fc-cache regenerate from scratch cleanly.
@@ -68,6 +72,22 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
 # The base image's TeX Live year (e.g. 2024, 2025, ...) changes over time,
 # so we resolve the versioned bin dir at build time and expose it at a fixed path.
 RUN ln -s "$(dirname "$(find /usr/local/texlive -maxdepth 3 -name 'x86_64-linux' -type d | head -n1)")/x86_64-linux" /usr/local/texlive/bin
+
+# Beamer theme (RosePineMoon) into the local TeX tree
+COPY texmf/ /tmp/texmf/
+RUN cp -r /tmp/texmf/. "$(/usr/local/texlive/bin/kpsewhich -var-value TEXMFLOCAL)/" && \
+  rm -rf /tmp/texmf && \
+  /usr/local/texlive/bin/mktexlsr
+
+# Prebuild the luaotfload font-name database so LuaLaTeX doesn't rebuild it on
+# every fresh container. The cache must stay writable by any UID: luaotfload
+# refuses to run with a read-only TEXMFVAR, and manage_docker.sh runs as the
+# host user's UID.
+ENV TEXMFVAR=/var/cache/texlive/texmf-var
+ENV TEXMFCACHE=/var/cache/texlive/texmf-var
+RUN mkdir -p "$TEXMFVAR" && \
+  /usr/local/texlive/bin/luaotfload-tool --update --force && \
+  chmod -R a+rwX /var/cache/texlive
 
 # Create non-root user and allow sudo without password
 # Check if user with UID 1000 exists, if so use it, otherwise create appuser
@@ -92,12 +112,27 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 RUN python3 -m venv ~/venv && \
   ~/venv/bin/pip install --no-cache-dir \
   pandocfilters==1.5.1 \
-  pygments==2.21.0 && \
+  pygments==2.21.0 \
+  numpy==2.5.4 \
+  pandas==3.1.0 \
+  scipy==1.18.1 \
+  matplotlib==3.11.2 \
+  seaborn==0.13.2 \
+  openpyxl==3.1.5 \
+  joblib==1.6.0 \
+  jinja2==3.1.6 \
+  nbformat==5.11.1 \
+  ipython==9.17.1 \
+  pyyaml==6.0.3 && \
   mkdir -p ~/.npm-global && \
   npm config set prefix ~/.npm-global && \
   npm install -g --no-progress \
   puppeteer@25.16.0 \
   @mermaid-js/mermaid-cli@12.0.0
+
+# Custom Pygments lexers and styles (pseudocode, rosepinemoon) for minted
+COPY --chown=1000:1000 python/custom_pygments/ /tmp/custom_pygments/
+RUN ~/venv/bin/pip install --no-cache-dir /tmp/custom_pygments && rm -rf /tmp/custom_pygments
 
 # Bake in manual-pipeline with its Node dependencies preinstalled. Projects use it
 # by setting PIPELINE_DIR := $(MANUAL_PIPELINE_DIR) in their manual/Makefile.
@@ -106,6 +141,7 @@ ARG MANUAL_PIPELINE_REF=main
 ADD --chown=1000:1000 https://github.com/Derrekito/manual-pipeline.git#${MANUAL_PIPELINE_REF} /opt/manual-pipeline
 RUN cd /opt/manual-pipeline && npm ci --no-progress
 ENV MANUAL_PIPELINE_DIR=/opt/manual-pipeline
+ENV MERMAID_BIN=/home/texlive/.npm-global/bin/mmdc
 
 # Set PATH for venv, global Node.js binaries, and TeX Live
 # Note: Use full paths since ENV doesn't expand variables at runtime

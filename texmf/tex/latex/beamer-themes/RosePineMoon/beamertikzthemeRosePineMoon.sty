@@ -1,0 +1,27 @@
+% themes/RosePineMoon/beamertikzthemeRosePineMoon.sty
+\ProvidesPackage{beamertikzthemeRosePineMoon}[2026/06/23 v1.0 Rosé Pine Moon TikZ]
+\mode<presentation>
+\RequirePackage{tikz}
+\RequirePackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% Default TikZ pen/fill
+\tikzset{
+  every picture/.style={/utils/exec=\color{Text}},
+}
+
+% PGFPlots palette
+\pgfplotsset{
+  rpm/.style={
+    axis line style={Subtle},
+    tick label style={Subtle},
+    label style={Text},
+    legend style={fill=Surface, draw=HighlightMed, text=Text},
+    grid style={HighlightMed},
+    title style={Text},
+    cycle list={
+      {Pine, mark=*}, {Love, mark=square*}, {Gold, mark=triangle*},
+      {Iris, mark=diamond*}, {Foam, mark=o}, {Rose, mark=x}},
+  },
+}
+\mode<all>

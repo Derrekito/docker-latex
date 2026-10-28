@@ -105,14 +105,18 @@ Compiles a LaTeX project using `make`. Requires a Makefile in the directory.
 The environment includes:
 
 - **Base**: `texlive/texlive:latest`
-- **Utilities**: `make`, `curl`, `wget`, `git`, `jq`, `perl`, `pandoc` (pinned 3.11), `python3`, `nodejs`, `chromium`
-- **Fonts**: FiraCode variants (Retina, Light, Bold, Regular, SemiBold, Medium)
-- **Python**: Virtual environment with `pandocfilters` and `pygments`
+- **Utilities**: `make`, `curl`, `wget`, `git`, `jq`, `perl`, `pandoc` (pinned 3.11), `python3`, `nodejs`, `chromium`, `poppler-utils`, `qpdf`
+- **Fonts**: Fira Code, Hack, Roboto, JetBrains Mono, Special Gothic Condensed One, Liberation
+- **Beamer theme**: RosePineMoon (`\usetheme{RosePineMoon}`), installed in the local TeX tree from `texmf/`
+- **Python**: Virtual environment with `pandocfilters`, `pygments`, notebook/plotting packages (numpy, pandas, scipy, matplotlib, seaborn, openpyxl, joblib, jinja2, nbformat, ipython, pyyaml), and `custom_pygments` from `python/` (the `pseudocode` lexer and `rosepinemoon` style for minted)
 - **Node.js**: `puppeteer` (v25.16.0) and `@mermaid-js/mermaid-cli` (v12.0.0)
 - **manual-pipeline**: cloned to `/opt/manual-pipeline` with its Node dependencies installed; `MANUAL_PIPELINE_DIR` points to it
 - **Default Working Directory**: `/app`
 - **Default Command**: `bash`
 - **Healthcheck**: Verifies `latexmk` functionality
+- **LuaLaTeX font cache**: prebuilt at `/var/cache/texlive/texmf-var` (`TEXMFVAR`), writable by any UID
+
+The RosePineMoon theme and `custom_pygments` are copied from SlideForge.
 
 ## Manual Image Building
 

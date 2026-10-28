@@ -1,0 +1,63 @@
+% themes/RosePineMoon/beamerouterthemeRosePineMoon.sty
+\ProvidesPackage{beamerouterthemeRosePineMoon}[2026/06/23 v1.0 Rosé Pine Moon Outer]
+\mode<presentation>
+\RequirePackage{tikz}
+
+\setbeamertemplate{navigation symbols}{}
+
+% Iris->Pine gradient accent rule, width given as #1 (a dimen expression)
+\newcommand{\rpm@accentrule}[1]{%
+  \begin{tikzpicture}
+    \shade[left color=Iris, right color=Pine] (0,0) rectangle (#1,1.4pt);
+  \end{tikzpicture}}
+
+% --- Title page (flat, centered, no images) ---
+\setbeamertemplate{title page}{%
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=center] at (current page.center) {%
+      \begin{minipage}{0.82\textwidth}\centering
+        {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle\par}
+        \ifx\insertsubtitle\@empty\else
+          \vspace{0.3cm}
+          {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}
+        \fi
+        \vspace{0.4cm}\rpm@accentrule{0.82\textwidth}\par
+        \vspace{0.6cm}
+        {\usebeamerfont{author}\usebeamercolor[fg]{author}\insertauthor\par}
+        \vspace{0.2cm}
+        {\usebeamerfont{date}\usebeamercolor[fg]{date}\insertdate\par}
+      \end{minipage}};
+  \end{tikzpicture}}
+
+% --- Frame title: text + accent rule beneath, generous top margin ---
+\setbeamertemplate{frametitle}{%
+  \vskip0.6em
+  {\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\par}
+  \vskip2pt\rpm@accentrule{\textwidth}%
+  \vskip0.4em}
+
+% --- Section page: centered Iris title on Surface, Love bar above ---
+\setbeamertemplate{section page}{%
+  \begin{tikzpicture}[remember picture, overlay]
+    \fill[Surface] (current page.south west) rectangle (current page.north east);
+    \node[anchor=center] at (current page.center) {%
+      \begin{minipage}{0.8\textwidth}\centering
+        {\color{Love}\rule{2cm}{2pt}}\par\vspace{0.4cm}
+        {\usebeamerfont{section title}\color{Iris}\insertsection\par}
+      \end{minipage}};
+  \end{tikzpicture}}
+
+\AtBeginSection{%
+  \begin{frame}[plain,noframenumbering]%
+    \usebeamertemplate{section page}%
+  \end{frame}}
+
+% --- Footline: off by default, minimal frame number with [chrome] ---
+\setbeamertemplate{footline}{%
+  \ifrpm@chrome
+    \ifnum\thepage>1
+      \hfill{\usebeamerfont{footline}\color{Subtle}%
+        \insertframenumber\,/\,\inserttotalframenumber}\hspace*{1.5ex}\vskip4pt
+    \fi
+  \fi}
+\mode<all>

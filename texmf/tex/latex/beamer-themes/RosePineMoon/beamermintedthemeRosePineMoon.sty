@@ -1,0 +1,26 @@
+% themes/RosePineMoon/beamermintedthemeRosePineMoon.sty
+\ProvidesPackage{beamermintedthemeRosePineMoon}[2026/06/23 v1.0 Rosé Pine Moon Minted]
+\mode<presentation>
+\RequirePackage{minted}
+\RequirePackage{fvextra}
+\RequirePackage{xcolor}
+
+\usemintedstyle{rosepinemoon}
+\setminted{
+  style=rosepinemoon,
+  bgcolor=Base,
+  linenos,
+  numbersep=8pt,
+  breaklines,
+  autogobble,
+  fontsize=\footnotesize,
+  frame=none,
+  highlightcolor=HighlightHigh,
+}
+% Line numbers in Muted
+\renewcommand{\theFancyVerbLine}{\scriptsize\color{Muted}\arabic{FancyVerbLine}}
+
+% Inline code helper on Surface
+\providecommand{\code}[1]{%
+  \colorbox{Surface}{\strut\texttt{\small\color{Foam}#1}}}
+\mode<all>
